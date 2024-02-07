@@ -84,7 +84,7 @@ For usage examples, please refer to  [![**Stable Diffusion Reference Only Demo**
 
 ### By Independent Gradio Web UI
 
-A1111 stable diffusion Web UI is currently not supported. I will support it as soon as possible. If you want to use web UI, you can deploy a version similar to huggingface space locally.
+You can deploy a version similar to huggingface space locally.
 
 Clone this repository:
 
@@ -140,8 +140,6 @@ automatic_coloring_pipeline = StableDiffusionReferenceOnlyPipeline.from_pretrain
 ```
 
 ### By A1111 Stable Diffusion Web UI
-
-The current version, once installed, will automatically download the required model and load it into memory during the first run, occupying GPU resources.
 
 Input ```Extensions->Install from URL->URL for extension's git repository```: ```https://github.com/aihao2000/stable-diffusion-reference-only```
 
