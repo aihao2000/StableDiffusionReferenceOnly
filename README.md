@@ -14,7 +14,7 @@ models:
 
 # Stable Diffusion Reference Only
 
-A general model for secondary painting.[![arXiv](https://camo.githubusercontent.com/9f865a7810c4ab8e0c379528b0cbf222348b44db84823c091f49d8a992462d2d/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f61725869762d323330362e31343638352d6233316231622e737667)](https://arxiv.org/abs/2311.02343)
+A general model for secondary painting.
 
 ![](./README.assets/9.png)
 
@@ -160,7 +160,7 @@ Then click ```Install```,```Installed->Apply and restart UI```
 
 ## Train
 
-Take the line art automatic coloring task as an example. If you want to perform other tasks, you can refer to and modify [train/train_sd_reference_only_automatic_coloring.py](https://github.com/aihao2000/stable-diffusion-reference-only/blob/main/train/train_sd_reference_only_automatic_coloring.py).
+Take the line art automatic coloring task as an example. If you want to perform other tasks, you can refer to and modify [train/train_sd_reference_only.py](https://github.com/aihao2000/stable-diffusion-reference-only/blob/main/train/train_sd_reference_only.py).
 
 ### Prepare Dataset
 
@@ -169,8 +169,6 @@ You need a dataset with similar characters labeled. [datasets/datasets.py](https
 datasets.py requires a [meta_data.json](https://github.com/aihao2000/stable-diffusion-reference-only/blob/main/dataset/meta_data.json) to mark similar data.
 
 Tip: You can use CLIP's image encoder to retrieve similar images on large datasets, or directly use existing or generated similar images.
-
-
 
 You may use and refer to:
 
@@ -188,8 +186,6 @@ You may use and refer to:
 
 *Please just for reference, they use the [image_retriever](https://github.com/aihao2000/image-retriever) library, which is an unstable version, and please be careful that the script needs to be executed with the dataset as the root directory.*
 
-
-
 [datasets.py](https://github.com/aihao2000/stable-diffusion-reference-only/blob/main/dataset/dataset.py) will generate an object like this:
 
 ```python
@@ -204,17 +200,13 @@ You may use and refer to:
 
 ### Train
 
-To train the model you can use [train/train_sd_reference_only_automatic_coloring.py](https://github.com/aihao2000/stable-diffusion-reference-only/blob/main/train/train_sd_reference_only_automatic_coloring.py) or [train/train_sd_reference_only_controlnet_aux.py](https://github.com/aihao2000/stable-diffusion-reference-only/blob/main/train/train_sd_reference_only_controlnet_aux.py).
+To train the model you can use [train/train_sd_reference_only_automatic_coloring.py](https://github.com/aihao2000/stable-diffusion-reference-only/blob/main/train/train_sd_reference_only_automatic_coloring.py) or [train/train_sd_reference_only.py](https://github.com/aihao2000/stable-diffusion-reference-only/blob/main/train/train_sd_reference_only.py).
 
 [train_sd_reference_only_automatic_coloring.py](https://github.com/aihao2000/stable-diffusion-reference-only/blob/main/train/train_sd_reference_only_automatic_coloring.py) will use image1 as the reference image, use adaptive threshold to process image2 as blueprint, and use image2 as the desired generated image for noise addition and denoise.
 
-The difference between [train_sd_reference_only_controlnet_aux.py](https://github.com/aihao2000/stable-diffusion-reference-only/blob/main/train/train_sd_reference_only_controlnet_aux.py) and it is that it uses the [controlnet preprocessor](https://github.com/patrickvonplaten/controlnet_aux) to process image2 as a blueprint for training, and has an additional parameter - controlnet_aux_processor_id to specify the type of blueprint.
+[train/train_sd_reference_only.py](https://github.com/aihao2000/stable-diffusion-reference-only/blob/main/train/train_sd_reference_only.py) can freely configure datasets.py to provide new blueprint types.
 
 Next, the specific parameters you may use are as follows:
-
-- controlnet_aux_processor_id
-
-  Please refer to the value of https://github.com/patrickvonplaten/controlnet_aux.
 
 - pretrained_model_name_or_path
 
@@ -276,16 +268,12 @@ Next, the specific parameters you may use are as follows:
 
 - seed
 
-Finally, run the training script, just like [train/train_automatic_coloring_0.1.2_buaa.sh](https://github.com/aihao2000/stable-diffusion-reference-only/blob/main/train/train_automatic_coloring_0.1.2_buaa.sh).
+Finally, run the training script, just like [train/train_automatic_coloring_0.1.2.sh](https://github.com/aihao2000/stable-diffusion-reference-only/blob/main/train/train_automatic_coloring_0.1.2.sh).
 
 ## Future Work
 
 - [ ] Training at 768 resolution, and fine-tuning at multiple resolutions
-
 - [ ] Module separation, compatible with Stable Diffusion, Stable Diffusion XL
-
-- [ ] Multi-condition 3D Generation
-
 - [ ] ......
 
 *If you're interested in funding, computing resources, or code contributions, feel free to contact me.*

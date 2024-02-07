@@ -2,9 +2,7 @@ import datasets
 import os
 from PIL import Image
 import json
-import torch
-import cv2
-import numpy as np
+import jsonlines
 
 
 class ImagesConfig(datasets.BuilderConfig):
@@ -17,26 +15,26 @@ class Images(datasets.GeneratorBasedBuilder):
         super(Images, self).__init__(**kwargs)
 
     def _split_generators(self, dl_manager: datasets.DownloadManager):
-        meta_data = {}
-        with open(os.path.join(self.config.data_dir, "meta_data.json"), "r") as f:
-            meta_data = json.load(f)
-        data = []
-        if (
-            self.config.name == "similar_pairs"
-            or self.config.name == "reference_only_for_automatic_coloring"
-        ):
-            for image1_path in meta_data:
-                for image2_path, similarity in meta_data[image1_path]["similar_images"]:
-                    data.append(
-                        (
-                            image1_path,
-                            image2_path,
-                            similarity,
+        with jsonlines.open(os.path.join(self.config.data_dir, "meta_data.jsonl"), "r") as meta_data:
+            data = []
+            if (
+                self.config.name == "similar_pairs"
+                or self.config.name =="reference_only_for_dwpose"
+            ):
+                for obj in meta_data:
+                    reference_image_path=obj['image_path']
+                    if not os.path.exists(os.path.join(self.config.data_dir,reference_image_path)):
+                        print(reference_image_path+" not exists")
+                    for target_image, similarity in obj["similar_images"]:
+                        if not os.path.exists(os.path.join(self.config.data_dir,target_image)):
+                            print(target_image+" not exists")
+                            continue
+                        data.append(
+                            (
+                                reference_image_path,
+                                target_image
+                            )
                         )
-                    )
-        elif self.config.name == "image_prompt_pairs":
-            for image_path in meta_data:
-                data.append(image_path, meta_data[image_path]["prompt"])
         print("data size:", len(data))
         return [
             datasets.SplitGenerator(
@@ -55,9 +53,8 @@ class Images(datasets.GeneratorBasedBuilder):
             description="image prompt pairs",
         ),
         ImagesConfig(
-            name="reference_only_for_automatic_coloring",
-            description="reference_only_for_automatic_coloring",
-        ),
+            name="reference_only_for_dwpose",
+        )
     ]
 
     def _info(self):
@@ -65,10 +62,10 @@ class Images(datasets.GeneratorBasedBuilder):
             return datasets.DatasetInfo(
                 features=datasets.Features(
                     {
-                        "image1": datasets.features.Image(),
-                        "image1_path": datasets.Value("string"),
-                        "image2": datasets.features.Image(),
-                        "image2_path": datasets.Value("string"),
+                        "reference_image": datasets.features.Image(),
+                        "reference_image_path": datasets.Value("string"),
+                        "target_image": datasets.features.Image(),
+                        "target_image_path": datasets.Value("string"),
                         "similarity": datasets.Value("float32"),
                     }
                 )
@@ -83,13 +80,14 @@ class Images(datasets.GeneratorBasedBuilder):
                     }
                 )
             )
-        elif self.config.name == "reference_only_for_automatic_coloring":
+        elif self.config.name == "reference_only_for_dwpose":
             return datasets.DatasetInfo(
                 features=datasets.Features(
                     {
-                        "prompt": datasets.features.Image(),
-                        "blueprint": datasets.features.Image(),  # "image": datasets.features.Image(),
-                        "image": datasets.features.Image(),
+                        "reference_image": datasets.features.Image(),
+                        "target_image": datasets.features.Image(),
+                        "blueprint_image": datasets.features.Image()
+                        
                     }
                 )
             )
@@ -108,31 +106,16 @@ class Images(datasets.GeneratorBasedBuilder):
                     "image2_path": image2_path,
                     "similarity": similarity,
                 }
-        elif self.config.name == "reference_only_for_automatic_coloring":
-            for image1_path, image2_path, similarity in data:
-                try:
-                    prompt = Image.open(
+        elif self.config.name=="reference_only_for_dwpose":
+            for image1_path, image2_path in data:
+                yield image1_path + ":" + image2_path, {
+                    "reference_image": Image.open(
                         os.path.join(self.config.data_dir, image1_path)
-                    ).convert("RGB")
-                    image = Image.open(
+                    ),
+                    "target_image": Image.open(
                         os.path.join(self.config.data_dir, image2_path)
-                    ).convert("RGB")
-                    blueprint = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2GRAY)
-                    blueprint = cv2.adaptiveThreshold(
-                        blueprint,
-                        255,
-                        cv2.ADAPTIVE_THRESH_MEAN_C,
-                        cv2.THRESH_BINARY,
-                        blockSize=5,
-                        C=7,
-                    )
-                    blueprint = Image.fromarray(blueprint).convert("RGB")
-                    blueprint = Image.eval(blueprint, lambda x: 255 - x)
-                except Exception as e:
-                    continue
-                else:
-                    yield image1_path + ":" + image2_path, {
-                        "prompt": prompt,
-                        "blueprint": blueprint,
-                        "image": image,
-                    }
+                    ),
+                    "blueprint_image":Image.open(
+                        os.path.join(self.config.data_dir,image2_path.replace('data','dwpose'))
+                    ),
+                }
